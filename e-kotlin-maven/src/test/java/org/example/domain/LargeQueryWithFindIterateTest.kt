@@ -1,42 +1,65 @@
 package org.example.domain;
 
-import com.avaje.ebean.QueryResultVisitor;
-import org.example.ExampleBaseTestCase;
-import org.junit.Test;
-
-import com.avaje.ebean.QueryIterator;
+import com.avaje.ebean.Ebean
 import org.avaje.agentloader.AgentLoader
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.example.ExampleBaseTestCase
+import org.junit.Test
 
 public class LargeQueryWithFindIterateTest : ExampleBaseTestCase() {
 
-  // How to best do a class static initialisation block? (to load the javaagent at runtime so I'd say its a rare requirement)
-  class object {
+  init {
     // load the enhancement agent 'early' prior to the bean classes like Customer being loaded
-    val agentLoaded = AgentLoader.loadAgentFromClasspath("avaje-ebeanorm-agent", "debug=1;packages=org.example.**")
+    AgentLoader.loadAgentFromClasspath("avaje-ebeanorm-agent", "debug=1;packages=org.example.**")
   }
 
-  Test
+  @Test
   fun testFindIterate() {
 
     // insert some customers
-    for (i in 0..30) {
-      val customer = Customer();
-      customer.name = "Hello"+i;
-      customer.save();      
+    Ebean.execute {
+      for (i in 0..10) {
+        val customer = Customer();
+        customer.name = "Hello" + i;
+        customer.save();
+      }
     }
 
-    // Can I convert this QueryResultVisitor to a SAM function?
-    // Using local FindVisit class for the moment
-    Customer.find
-      .select("id, name")
-      .findVisit(FindVisit())
 
-    // Perform the query using findIterate ... which means the
-    // iterator MUST be closed (in the finally block below)
+    // The following queries show how to process very large resultSets a bean at a time.
+    // Internally Ebean uses a persistence context per per bean (and associated object graphs)
+    // unlike findList() which holds the entire list of beans in memory before giving the list
+    // to the caller for processing.
+
+    Customer
+        .select("id, name")
+        .where()
+        .findEach({
+          val id = it?.id
+          val name = it?.name
+          System.out.println(" using findEach extension method - $id $name")
+        })
+
+    Customer
+        .select("id, name")
+        .where()
+        .findEachWhile {
+          System.out.println(" got ... ${it.id} ${it.name}")
+          // stop iterating through the results if id > 5
+
+          it?.comments!!.length > 5
+          //it.contacts.size() > 5;
+          //var t :Long? = 42
+          //t!!.toLong() > 4L
+          it.id!!.toLong() > 5L
+        }
+
+
+    // Perform the query using findIterate (Java7 style) ...
+    // Note that the iterator MUST be closed (in the finally block below) or there
+    // will be leaked jdbc resources
+
     val iterate =
-        Customer.find
+        Customer
           .query().select("id, name")
           .findIterate();
 
@@ -54,15 +77,6 @@ public class LargeQueryWithFindIterateTest : ExampleBaseTestCase() {
       iterate.close();
     }
 
-  }
-
-
-  class FindVisit : QueryResultVisitor<Customer> {
-
-    override fun accept(customer: Customer?): Boolean {
-      System.out.println("vistor ... got name ${customer?.id} ${customer?.name}");
-      return true;
-    }
   }
 
 }

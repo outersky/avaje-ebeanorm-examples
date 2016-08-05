@@ -1,9 +1,9 @@
 package org.example.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import org.example.domain.finder.ContactFinder;
+
+import javax.persistence.*;
+import java.util.List;
 
 /**
  * Contact entity bean.
@@ -15,7 +15,7 @@ public class Contact extends BaseModel {
   /**
    * Convenience Finder for 'active record' style.
    */
-  public static final Finder<Long,Contact> find = new Finder<>(Long.class, Contact.class);
+  public static final ContactFinder find = new ContactFinder();
   
   @Column(length=50)
   String firstName;
@@ -31,6 +31,9 @@ public class Contact extends BaseModel {
   
   @ManyToOne(optional=false)
   Customer customer;
+
+  @OneToMany(mappedBy = "contact")
+  List<ContactNote> notes;
 
   /**
    * Default constructor.
@@ -85,5 +88,12 @@ public class Contact extends BaseModel {
   public void setCustomer(Customer customer) {
     this.customer = customer;
   }
-  
+
+  public List<ContactNote> getNotes() {
+    return notes;
+  }
+
+  public void setNotes(List<ContactNote> notes) {
+    this.notes = notes;
+  }
 }

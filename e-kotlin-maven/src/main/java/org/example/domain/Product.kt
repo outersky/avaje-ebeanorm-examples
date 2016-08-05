@@ -1,43 +1,30 @@
 package org.example.domain;
 
+import com.avaje.ebean.Model
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size;
-import com.avaje.ebean.Model.Finder
 
-/**
- * Create using a name and sku.
- * <p>
- * Provided as alternate constructor.
- */
-fun Product(name:String , sku:String) : Product {
-  val product = Product()
-  product.name = name
-  product.sku = sku
-  return product;
-}
 
 /**
  * Product entity bean.
  */
-Entity
-Table(name = "o_product")
-public class Product : BaseModel() {
+@Entity
+@Table(name = "o_product")
+public class Product (
 
-  class object {
-    /**
-     * Convenience Finder for 'active record' style.
-     */
-    public val find : Finder<Long,Product> = Finder(javaClass<Long>(), javaClass<Product>());
+ @NotNull @Size(max = 20)
+ public var sku: String = "",
 
-    public fun ref(id:Long) : Product {
-      return find.ref(id);
-    }
-  }
+ @NotNull @Size(max = 100)
+ public var name: String = ""
 
-  Size(max = 20)
-  public var sku:String? = null;
+) : BaseModel() {
 
-  public var name:String? = null;
+  /**
+   * Finder convenience singleton.
+   */
+  companion object : Model.Find<Long, Product>() {}
 
 }

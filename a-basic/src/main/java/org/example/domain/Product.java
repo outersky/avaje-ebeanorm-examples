@@ -1,5 +1,9 @@
 package org.example.domain;
 
+//import org.example.domain.finder.ProductFinder;
+
+import org.example.domain.finder.ProductFinder;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
@@ -10,6 +14,8 @@ import javax.validation.constraints.Size;
 @Entity
 @Table(name = "o_product")
 public class Product extends BaseModel {
+
+  public static final ProductFinder find = new ProductFinder();
 
   @Size(max = 20)
   String sku;

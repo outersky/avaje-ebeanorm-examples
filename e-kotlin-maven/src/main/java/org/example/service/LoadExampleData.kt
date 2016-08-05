@@ -1,19 +1,9 @@
 package org.example.service;
 
-import java.util.ArrayList;
-
-import org.example.domain.Address;
-import org.example.domain.Contact;
-import org.example.domain.Country;
-import org.example.domain.Customer;
-import org.example.domain.Order;
-import org.example.domain.Order.Status;
-import org.example.domain.OrderDetail;
-import org.example.domain.Product;
-
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.TxRunnable;
+import com.avaje.ebean.Ebean
+import com.avaje.ebean.EbeanServer
+import com.avaje.ebean.TxRunnable
+import org.example.domain.*
 
 public class LoadExampleData {
 
@@ -21,7 +11,8 @@ public class LoadExampleData {
 
   val server: EbeanServer = Ebean.getServer(null);
 
-  synchronized fun load() {
+    //synchronized
+  fun load() {
 
     if (runOnce) {
       return;
@@ -38,15 +29,14 @@ public class LoadExampleData {
 
   fun deleteAll() {
 
-    // using an 'extension function'
-    txn({
+    Ebean.execute({
 
       // orm update use bean name and bean properties
-      server.createUpdate(javaClass<OrderDetail>(), "delete from orderDetail").execute();
-      server.createUpdate((javaClass<Order>()), "delete from order").execute();
-      server.createUpdate((javaClass<Contact>()), "delete from contact").execute();
-      server.createUpdate((javaClass<Customer>()), "delete from Customer").execute();
-      server.createUpdate((javaClass<Address>()), "delete from address").execute();
+      server.createUpdate(OrderDetail::class.java, "delete from orderDetail").execute();
+      server.createUpdate(Order::class.java, "delete from order").execute();
+      server.createUpdate(Contact::class.java, "delete from contact").execute();
+      server.createUpdate(Customer::class.java, "delete from Customer").execute();
+      server.createUpdate(Address::class.java, "delete from address").execute();
 
       // sql update uses table and column names
       server.createSqlUpdate("delete from o_country").execute();
@@ -56,8 +46,8 @@ public class LoadExampleData {
 
   fun insertCountries() {
 
-    Country("NZ", "New Zealand 22").save()
-    Country("AU", "Australia 22").save()
+    Country("NZ", "New Zealand").save()
+    Country("AU", "Australia").save()
   }
 
   fun insertProducts() {
@@ -157,9 +147,9 @@ public class LoadExampleData {
     val customer = Customer();
     customer.name = name;
     if (contactSuffix > 0) {
-      customer.addContact(Contact.of("Jim" + contactSuffix, "Cricket"));
-      customer.addContact(Contact.of("Fred" + contactSuffix, "Blue"));
-      customer.addContact(Contact.of("Bugs" + contactSuffix, "Bunny"));
+      customer.addContact(Contact("Jim" + contactSuffix, "Cricket"));
+      customer.addContact(Contact("Fred" + contactSuffix, "Blue"));
+      customer.addContact(Contact("Bugs" + contactSuffix, "Bunny"));
     }
 
     if (shippingStreet != null) {
@@ -192,11 +182,11 @@ public class LoadExampleData {
     val product3 = Product.ref(3)
 
     return with(Order()) {
-      this.customer = customer;
-      add(product1, 5, 10.50)
-      add(product2, 3, 1.10)
-      add(product3, 1, 2.00)
-      save()
+        this.customer = customer;
+        details.add(OrderDetail(product1, 5, 10.50))
+        details.add(OrderDetail(product2, 3, 1.10))
+        details.add(OrderDetail(product3, 1, 2.00))
+        save()
       this
     }
   }
@@ -206,10 +196,10 @@ public class LoadExampleData {
     val product1 = Product.ref(1)
 
     with(Order()) {
-      status = Status.SHIPPED;
-      this.customer = customer;
-      add(product1, 4, 10.50)
-      save();
+        status = Order.Status.SHIPPED
+        this.customer = customer
+        this.details.add(OrderDetail(product1, 4, 10.50))
+        save();
     }
   }
 
@@ -218,13 +208,13 @@ public class LoadExampleData {
     val product1 = Product.ref(1)
     val product3 = Product.ref(3)
 
-    with(Order()) {
-      status = Status.COMPLETE
-      this.customer = customer;
-      add(product1, 3, 10.50)
-      add(product3, 40, 2.10)
-      save()
-    }
+      with(Order()) {
+          status = Order.Status.COMPLETE
+          this.customer = customer;
+          this.details.add(OrderDetail(product1, 3, 10.50))
+          this.details.add(OrderDetail(product3, 40, 2.10))
+          save()
+      }
   }
 
   fun createOrder4(customer: Customer) {

@@ -1,42 +1,39 @@
 package org.example.domain;
 
 
+import com.avaje.ebean.Ebean
 import org.example.ExampleBaseTestCase;
 import org.junit.Test;
-
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Transaction;
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 public class InsertCustomerTest : ExampleBaseTestCase() {
 
 
-  Test
+  @Test
   fun test() {
 
-    val customer = Customer();
-    customer.name = "Roberto";
+    val customer = Customer("Roberto")
+    //customer.name = "Roberto"
     customer.comments = "Say hello"
 
     // insert the customer
     customer.save();
 
-    val fetched = Customer.find.byId(customer.id);
+    val fetched = Customer.byId(customer.id);
 
     // fetch using the Ebean singleton style
-    val fetched2 = Ebean.find(javaClass<Customer>(), customer.id);
+    val fetched2 = Ebean.find(Customer::class.java, customer.id);
 
-    assertEquals("Roberto", fetched.name);
-    assertEquals("Roberto", fetched2.name);
-
+    assertEquals("Roberto", fetched?.name);
+    assertEquals("Roberto", fetched2?.name);
   }
 
 
   /**
    * Test showing an explicit transaction.
    */
-  Test
+  @Test
   fun testExplicitTransaction() {
 
     // create a transaction to wrap multiple saves
@@ -66,7 +63,7 @@ public class InsertCustomerTest : ExampleBaseTestCase() {
    * Test showing an explicit transaction with extra control
    * the use of jdbc batching.
    */
-  Test
+  @Test
   fun testExplicitTransactionWithBatchControls() {
 
     val transaction = Ebean.beginTransaction();
@@ -98,16 +95,16 @@ public class InsertCustomerTest : ExampleBaseTestCase() {
   }
 
 
-    Test
-    fun testQuery() {
+  @Test
+  fun testQuery() {
 
-        val customers =
-            Customer.find.
-              where().ilike("name", "rob%")
-              .findList();
+    val customers =
+        Customer.
+            where().ilike("name", "rob%")
+            .findList();
 
-        assertNotNull(customers);
+    assertNotNull(customers);
 
-    }
+  }
 
 }

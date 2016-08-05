@@ -1,5 +1,7 @@
 package org.example.domain;
 
+import org.example.domain.finder.CustomerFinder;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,7 +23,7 @@ public class Customer extends BaseModel {
   /**
    * Convenience Finder for 'active record' style.
    */
-  public static final Finder<Long,Customer> find = new Finder<>(Long.class, Customer.class);
+  public static final CustomerFinder find = new CustomerFinder();
   
   boolean inactive;
   
@@ -41,6 +43,9 @@ public class Customer extends BaseModel {
 
   @OneToMany(mappedBy="customer", cascade=CascadeType.PERSIST)
   List<Contact> contacts;
+
+  @OneToMany(mappedBy="customer")
+  List<Order> orders;
 
   public boolean isInactive() {
     return inactive;
@@ -88,6 +93,14 @@ public class Customer extends BaseModel {
 
   public void setShippingAddress(Address shippingAddress) {
     this.shippingAddress = shippingAddress;
+  }
+
+  public List<Order> getOrders() {
+    return orders;
+  }
+
+  public void setOrders(List<Order> orders) {
+    this.orders = orders;
   }
 
   public List<Contact> getContacts() {
